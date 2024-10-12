@@ -3,3 +3,6 @@ package-lock.json
 .vscode
 dist
 .DS_Store
+scripts/seedDB.js
+src/model.js
+database.sqlite3
