@@ -3,11 +3,15 @@ import dayjs from "dayjs";
 import { sequelize, Ticket } from "../model";
 import { TICKET_MATERIAL } from "../../common/types";
 import { Model, Op, Transaction } from "sequelize";
-import { CreateBulkTicketInput } from "../schema/ticketSchema";
+import { CreateBulkTicketInput, FetchTicketsInput } from "../schema/ticketSchema";
 import {
   isValidDispatchedTime,
   doesDispatchedTimeExist,
   createTickets,
+  generateDateFilter,
+  generateSitesFilter,
+  findAllTickets,
+  formatTickets,
 } from "../service/ticketService";
 import logger from "../utils/logger";
 
@@ -47,6 +51,31 @@ export const createBulkTicketHandler = async (req: Request, res: Response) => {
 
     logger.info({ createdTickets }, "out: ticketController.createBulkTicketHandler");
     res.status(201).json(createdTickets);
+    return;
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(400).send({ msg: error.message });
+    } else {
+      res.status(500).send({ msg: error });
+    }
+  }
+};
+
+export const fetchTicketsHandler = async (req: Request, res: Response) => {
+  logger.info({ req: req.query }, "input: ticketController.fetchTicketsHandler");
+  try {
+    const fetchTickets: FetchTicketsInput = req;
+    const { sites, startDate, endDate } = fetchTickets.query;
+
+    const sitesFilter = generateSitesFilter(sites);
+    const dateFilter = generateDateFilter(startDate, endDate);
+
+    const allTickets = await findAllTickets(sitesFilter, dateFilter);
+
+    const formattedTickets = await formatTickets(allTickets);
+
+    logger.info({ formattedTickets }, "out: ticketController.fetchTicketsHandler");
+    res.status(200).json(formattedTickets);
     return;
   } catch (error) {
     if (error instanceof Error) {
