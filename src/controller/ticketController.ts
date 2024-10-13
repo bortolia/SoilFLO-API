@@ -1,64 +1,52 @@
 import { Request, Response } from "express";
 import dayjs from "dayjs";
-import { Ticket } from "../model";
-import { BulkTicketCreateRequest, TICKET_MATERIAL } from "../../common/types";
-import { Model, Op } from "sequelize";
+import { sequelize, Ticket } from "../model";
+import { TICKET_MATERIAL } from "../../common/types";
+import { Model, Op, Transaction } from "sequelize";
+import { CreateBulkTicketInput } from "../schema/ticketSchema";
+import {
+  isValidDispatchedTime,
+  doesDispatchedTimeExist,
+  createTickets,
+} from "../service/ticketService";
+import logger from "../utils/logger";
 
 export const createBulkTicketHandler = async (req: Request, res: Response) => {
+  logger.info({ req: req.body }, "input: ticketController.createBulkTicketHandler");
   try {
-    const bulkTicketReq: BulkTicketCreateRequest = req.body;
-    const { truckId, tickets } = bulkTicketReq;
+    const bulkTicketReq: CreateBulkTicketInput = req;
+    const { truckId, tickets } = bulkTicketReq.body;
 
-    const seenDate = new Set<Date>();
+    const seenDate = new Set<string>();
 
     for (const ticket of tickets) {
       const { dispatchedTime, siteId } = ticket;
 
-      // Validate dispatchedTime
-      const date = dayjs(dispatchedTime);
+      // Validate if the dispatchedTime is valid for this ticket. Throws if not valid
+      isValidDispatchedTime(dispatchedTime);
 
-      if (!date.isValid() || dispatchedTime == undefined) {
-        throw new Error("Invalid Date");
-      }
-      if (date.isAfter(dayjs())) {
-        throw new Error("Tickets cannot be dispatched at a future dates");
-      }
-
-      // Check set for duplicate dispatched times within this request
+      // Check seenDate for duplicate dispatchedTime within this request
       if (seenDate.has(ticket.dispatchedTime)) {
         throw new Error("Tickets with the same dispatchedTime cannot be created");
       }
       seenDate.add(ticket.dispatchedTime);
 
-      // Check for duplicate dispatchedTime
-      const duplicateTicket = await Ticket.findOne({
-        where: {
-          truckId,
-          dispatchedTime: { [Op.eq]: dayjs(dispatchedTime).toISOString() },
-        },
-      });
+      // Validate if the dispatchedTime already exists for the given truckId. Throws if already exists
+      await doesDispatchedTimeExist(truckId, dispatchedTime);
+    }
 
-      if (duplicateTicket) {
-        throw new Error(
-          `Ticket dispatchedTime (${dayjs(
-            dispatchedTime
-          ).toISOString()}) already exists for same truckId (${truckId})`
-        );
+    let createdTickets: Model[] = [];
+    const result = await sequelize.transaction(
+      {
+        isolationLevel: Transaction.ISOLATION_LEVELS.SERIALIZABLE,
+      },
+      async (t: Transaction) => {
+        createdTickets = await createTickets(tickets, truckId, t);
       }
-    }
+    );
 
-    const ticketArr: Model[] = [];
-    for (const ticket of tickets) {
-      const newTicket = await Ticket.create({
-        siteId: ticket.siteId,
-        truckId,
-        dispatchedTime: dayjs(ticket.dispatchedTime).toISOString(),
-        material: TICKET_MATERIAL.Soil,
-      });
-      ticketArr.push(newTicket);
-    }
-
-    res.status(201).json(ticketArr);
+    logger.info({ createdTickets }, "out: ticketController.createBulkTicketHandler");
+    res.status(201).json(createdTickets);
     return;
   } catch (error) {
     if (error instanceof Error) {

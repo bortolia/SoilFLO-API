@@ -54,6 +54,7 @@ Ticket.beforeCreate(async (ticket, options) => {
   const lastSiteTicket: any = await Ticket.findOne({
     where: { siteId: preTicket.siteId },
     order: [["ticketNumber", "DESC"]],
+    transaction: options.transaction,
   });
 
   preTicket.ticketNumber = lastSiteTicket ? lastSiteTicket.ticketNumber + 1 : 1;
