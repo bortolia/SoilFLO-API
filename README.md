@@ -31,8 +31,6 @@ npm run seed
 
 ### Run Locally
 
--
-
 ```
 npm run dev
 ```

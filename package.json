@@ -36,5 +36,9 @@
     "sequelize": "^6.37.4",
     "sqlite3": "^5.1.7",
     "zod": "^3.23.8"
-  }
+  },
+  "engines": {
+    "node": ">=18.20.4"
+  },
+  "engineStrict": true
 }
