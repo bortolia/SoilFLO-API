@@ -1,0 +1,117 @@
+{
+	"info": {
+		"_postman_id": "8a1f5d38-4a07-40d8-bd3b-872e3c3fcde8",
+		"name": "SoilFLO API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "POST /api/tickets/bulk",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "secret123",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "admin",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n   \"truckId\": 1,\n    \"tickets\": [\n        {\"dispatchedTime\": \"2024-01-18T04:00:00.010Z\", \"siteId\": 1},\n        {\"dispatchedTime\": \"2024-06-18T04:00:00.010Z\", \"siteId\": 21}\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3003/api/tickets/bulk",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3003",
+					"path": [
+						"api",
+						"tickets",
+						"bulk"
+					]
+				},
+				"description": "## Create Tickets In Bulk For A Truck\n\n#### Request Body Shape\n\n- All fields are required\n- `tickets` array must contain at least 1 item\n\n```\n{\n    truckId: number;\n    tickets: [\n        {\n            dispatchedTime: string;\n            siteId: number;\n        },\n    ]\n}\n```"
+			},
+			"response": []
+		},
+		{
+			"name": "GET /api/tickets?startDate=<date>&endDate=<date>&sites=<sitesList>",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "secret123",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "admin",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3003/api/tickets?startDate=2024-06-28&endDate=2024-06-30&sites=21",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3003",
+					"path": [
+						"api",
+						"tickets"
+					],
+					"query": [
+						{
+							"key": "startDate",
+							"value": "2024-06-28"
+						},
+						{
+							"key": "endDate",
+							"value": "2024-06-30"
+						},
+						{
+							"key": "sites",
+							"value": "21"
+						}
+					]
+				},
+				"description": "## Get All Tickets (with optional filters)\n\n#### Query Params\n\n- `date` format: `YYYY-MM-DD`\n- `sitesList` format: `1` or `1,11,21`\n\n```\n  startDate = 2024-06-28\n  endDate = 2024-06-30\n  sites = 1,11,21\n```"
+			},
+			"response": []
+		}
+	]
+}

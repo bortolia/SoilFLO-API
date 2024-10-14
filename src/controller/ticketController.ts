@@ -40,7 +40,7 @@ export const createBulkTicketHandler = async (req: Request, res: Response) => {
     }
 
     let createdTickets: Model[] = [];
-    const result = await sequelize.transaction(
+    await sequelize.transaction(
       {
         isolationLevel: Transaction.ISOLATION_LEVELS.SERIALIZABLE,
       },
@@ -67,11 +67,14 @@ export const fetchTicketsHandler = async (req: Request, res: Response) => {
     const fetchTickets: FetchTicketsInput = req;
     const { sites, startDate, endDate } = fetchTickets.query;
 
+    // Generate filters for query
     const sitesFilter = generateSitesFilter(sites);
     const dateFilter = generateDateFilter(startDate, endDate);
 
+    // Find all tickets utilizing (optional) filters
     const allTickets = await findAllTickets(sitesFilter, dateFilter);
 
+    // Format output to spec
     const formattedTickets = await formatTickets(allTickets);
 
     logger.info({ formattedTickets }, "out: ticketController.fetchTicketsHandler");
