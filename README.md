@@ -2,6 +2,7 @@
 
 - A postman collection is included in the `/postman` directory with prepopulated headers and request body/parameters to test the API
 - The details pertaining to each route follow the Install, Seed, Run and Test instructions below
+- See NOTE regarding protected routes
 
 By default, the REST API will be served at `http://localhost:3003`
 
@@ -9,6 +10,10 @@ There are 2 defined entry points:
 
 - `POST /api/tickets/bulk`
 - `GET /api/tickets?startDate=<date>&endDate=<date>&sites=<sitesList>`
+
+Metrics are exposed via Prometheus at:
+
+- `GET /metrics`
 
 ### Install
 
@@ -40,7 +45,7 @@ npm test
 
 ### NOTE
 
-- Routes are protected using Basic Authorization headers
+- API routes (not including `/metrics`) are protected using Basic Authorization headers
 - To access routes, use the defualt credentials: `admin:secret123`
 - These are set in the config directory
 - Headers: `{ Authorization: 'Basic YWRtaW46c2VjcmV0MTIz' }`
